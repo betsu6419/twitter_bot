@@ -20,9 +20,9 @@ twitter_bot/
 
 ### `tweet.py`
 The bot script. When executed, it:
-1. Creates an OAuth1 session using four environment variables
-2. Calls `POST statuses/update` (Twitter API v1.1) with the current datetime as the tweet text
-3. Prints `successed` on HTTP 200, otherwise prints the error status code
+1. Creates a `tweepy.Client` using four OAuth 1.0a environment variables
+2. Calls `client.create_tweet()` (Twitter API v2 `POST /2/tweets`) with the current datetime as the tweet text
+3. Prints the tweet ID on success, otherwise prints the error details
 
 The tweet content is Japanese: `"現在は{datetime}"` ("Current time is {datetime}").
 
@@ -45,12 +45,8 @@ All four are required at runtime. Never commit these values.
 
 Pinned in `requirements.txt`:
 
-- `bottle==0.12.16` — lightweight WSGI web framework (web server)
-- `requests==2.18.4` — HTTP client (used by tweet.py)
-- `requests-oauthlib==1.2.0` — OAuth1 signing for Twitter requests
-- `oauthlib==3.0.1` — OAuth library (dependency of requests-oauthlib)
-- `python-twitter==3.5` — Twitter API wrapper (imported transitively)
-- `future==0.17.1` — Python 2/3 compatibility layer
+- `bottle==0.12.23` — lightweight WSGI web framework (web server)
+- `tweepy==4.14.0` — Twitter API v2 client with OAuth 1.0a / OAuth 2.0 support
 
 ## Development Workflow
 
@@ -88,8 +84,9 @@ The `Procfile` starts `index.py` as the `web` dyno. Use the **Heroku Scheduler**
 
 ## Important Constraints
 
-- **Python version**: 3.7.3 (specified in `runtime.txt`). Do not upgrade without testing compatibility with all pinned dependencies.
-- **Twitter API v1.1**: `tweet.py` uses the now-deprecated `POST statuses/update` endpoint. Any migration to the v2 API (`POST /2/tweets`) requires replacing `requests-oauthlib` OAuth1 flow with OAuth2 Bearer Token or updating the auth flow accordingly.
-- **Dependency versions are pinned**: Do not bump versions without verifying compatibility. The pinned versions are old; test thoroughly in a fresh virtualenv before updating.
-- **No test suite exists**: There are no automated tests. Be careful when modifying `tweet.py` to avoid accidentally posting to Twitter during development — use environment variable guards or mock the HTTP call.
+- **Python version**: 3.12.8 (specified in `runtime.txt`).
+- **Twitter API v2**: `tweet.py` uses `POST /2/tweets` via `tweepy.Client`. The old v1.1 `statuses/update` endpoint is deprecated as of June 2025 and no longer works.
+- **Authentication**: OAuth 1.0a (4-key flow) is used. The same four environment variables (`CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_KEY`, `ACCESS_SECRET`) are required. OAuth 1.0a is supported by Twitter API v2 for user-context write operations.
+- **Free tier limits**: 1,500 tweets/month at the app level. Do not exceed this with high-frequency scheduling.
+- **No test suite exists**: There are no automated tests. Be careful when modifying `tweet.py` to avoid accidentally posting to Twitter during development — mock `tweepy.Client.create_tweet` in tests.
 - **No `.env` file or secret management**: Secrets are passed purely via environment variables. Do not introduce any file-based secret storage.

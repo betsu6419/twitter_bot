@@ -1,18 +1,18 @@
 import os
-import json
-import requests
 import datetime
-from requests_oauthlib import OAuth1Session
+import tweepy
 
+client = tweepy.Client(
+    consumer_key=os.environ["CONSUMER_KEY"],
+    consumer_secret=os.environ["CONSUMER_SECRET"],
+    access_token=os.environ["ACCESS_KEY"],
+    access_token_secret=os.environ["ACCESS_SECRET"],
+)
 
-twitter = OAuth1Session(os.environ["CONSUMER_KEY"],os.environ["CONSUMER_SECRET"],os.environ["ACCESS_KEY"],os.environ["ACCESS_SECRET"])
-url = "https://api.twitter.com/1.1/statuses/update.json"
 dt = datetime.datetime.now()
-params = {'status':"現在は{}".format(dt)}
-res = twitter.post(url,params = params)
-timeline = json.loads(res.text)
+response = client.create_tweet(text="現在は{}".format(dt))
 
-if res.status_code == 200:
-    print ('successed')
+if response.data:
+    print("successed: tweet_id={}".format(response.data["id"]))
 else:
-    print('error:%d' % res.status_code)
+    print("error: {}".format(response.errors))
