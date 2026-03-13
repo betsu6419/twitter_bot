@@ -17,6 +17,8 @@ claude = anthropic.Anthropic()
 
 SEARCH_QUERY = os.environ.get("SEARCH_QUERY", "Python -is:retweet lang:ja")
 MAX_RESULTS = int(os.environ.get("MAX_RESULTS", "10"))
+# フィルターのオン/オフ: FILTER_ENABLED=false で無効化 (デフォルト: 有効)
+FILTER_ENABLED = os.environ.get("FILTER_ENABLED", "true").lower() not in ("false", "0", "no")
 
 
 def fetch_tweets():
@@ -72,14 +74,17 @@ def main():
         return
 
     print(f"Query: {SEARCH_QUERY}")
-    print(f"Fetched: {len(tweets)} tweets — filtering with Claude...\n")
+    print(f"Fetched: {len(tweets)} tweets")
 
-    meaningful_indices = filter_meaningful(tweets)
-
-    kept = [t for i, t in enumerate(tweets) if i in meaningful_indices]
-    dropped = len(tweets) - len(kept)
-
-    print(f"Result: {len(kept)} kept / {dropped} dropped\n")
+    if FILTER_ENABLED:
+        print("Filter: ON — filtering with Claude...\n")
+        meaningful_indices = filter_meaningful(tweets)
+        kept = [t for i, t in enumerate(tweets) if i in meaningful_indices]
+        dropped = len(tweets) - len(kept)
+        print(f"Result: {len(kept)} kept / {dropped} dropped\n")
+    else:
+        print("Filter: OFF\n")
+        kept = tweets
     print("=" * 60)
     for tweet in kept:
         print(f"[{tweet.created_at}] author:{tweet.author_id}")
