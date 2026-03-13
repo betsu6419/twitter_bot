@@ -1,0 +1,11 @@
+[project]
+name = "twitter-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.8"
+dependencies = [
+    "anthropic>=0.40.0",
+    "bottle==0.12.23",
+    "tweepy==4.14.0",
+]
